@@ -23,7 +23,7 @@ ESP8266WiFiMulti wifiMulti;
 
 // InfluxDB configuration
 #define INFLUXDB_URL "https://us-east-1-1.aws.cloud2.influxdata.com"
-#define INFLUXDB_TOKEN "NFdWzEBxBFZzurEU4eBUx2J46YKDD6Wj3RCvY9M0nX4MpdV1fI_Xog6IYUdV0Qtru3pqW8KyejVrqCe0gmQaGA=="
+#define INFLUXDB_TOKEN ""
 #define INFLUXDB_ORG "Amrita"
 #define INFLUXDB_BUCKET "gg"  // Fixed bucket name
 
