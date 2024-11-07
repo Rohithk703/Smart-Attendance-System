@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Monitoring Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css">
+  <style>
+    /* Existing CSS styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f4f4;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      background-color: #f4f4f4;
+      border-radius: 12px 12px 0 0;
+      padding: 1.5rem;
+    }
+
+    .card-content {
+      padding: 1.5rem;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .status-badge.entry {
+      background-color: #DEF7EC;
+      color: #03543F;
+    }
+
+    .status-badge.exit {
+      background-color: #FEE2E2;
+      color: #9B2226;
+    }
+
+    .download-btn {
+      background-color: #475569;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .download-btn:hover {
+      background-color: #334155;
+    }
+
+    .select-custom {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #D1D5DB;
+      background-color: white;
+      min-width: 160px;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f4f4;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      background-color: #f4f4f4;
+      border-radius: 12px 12px 0 0;
+      padding: 1.5rem;
+    }
+
+    .card-content {
+      padding: 1.5rem;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .status-badge.entry {
+      background-color: #DEF7EC;
+      color: #03543F;
+    }
+
+    .status-badge.exit {
+      background-color: #FEE2E2;
+      color: #9B2226;
+    }
+
+    .download-btn {
+      background-color: #475569;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .download-btn:hover {
+      background-color: #334155;
+    }
+
+    .select-custom {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #D1D5DB;
+      background-color: white;
+      min-width: 160px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header with filters -->
+    <div class="flex flex-wrap justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">Attendance Monitoring Dashboard</h1>
+      <div class="flex flex-wrap gap-4 mt-4 sm:mt-0">
+        <select id="sectionFilter" class="select-custom">
+          <option value="overall" selected>All Sections</option>
+          <option value="A">Section A</option>
+          <option value="B">Section B</option>
+          <option value="C">Section C</option>
+          <option value="D">Section D</option>
+          <option value="E">Section E</option>
+          <option value="F">Section F</option>
+        </select>
+        <button class="download-btn" onclick="downloadCSV()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xl font-semibold mb-2">Total Students</h2>
+        </div>
+        <div class="card-content">
+          <p class="text-4xl font-bold text-gray-800" id="totalRecords">0</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xl font-semibold mb-2">Total Entries</h2>
+        </div>
+        <div class="card-content">
+          <p class="text-4xl font-bold text-gray-800" id="totalEntries">0</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xl font-semibold mb-2">Total Exits</h2>
+        </div>
+        <div class="card-content">
+          <p class="text-4xl font-bold text-gray-800" id="totalExits">0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- Class-wise Attendance Bar Chart -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xl font-semibold mb-4">Class-wise Attendance (Bar)</h2>
+        </div>
+        <div class="card-content">
+          <canvas id="classAttendanceBar"></canvas>
+        </div>
+      </div>
+
+      <!-- Weekly Attendance Chart -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xl font-semibold mb-4">Weekly Attendance</h2>
+        </div>
+        <div class="card-content">
+          <canvas id="weeklyAttendance"></canvas>
+        </div>
+      </div>
+
+      <!-- New Class-wise Attendance Pie Chart -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xl font-semibold mb-4">Class-wise Attendance Prediction</h2>
+        </div>
+        <div class="card-content">
+          <canvas id="classAttendancePie"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="text-xl font-semibold mb-4">Hourly Attendance</h2>
+      </div>
+      <div class="card-content">
+        <canvas id="hourlyAttendance"></canvas>
+      </div>
+    </div>
+    <!-- <div class="card mb-8">
+      <div class="card-header">
+        <h2 class="text-xl font-semibold mb-4">Attendance Prediction (Next 7 Days)</h2>
+        <button class="download-btn">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          Generate Prediction
+        </button>
+      </div> -->
+      
+    </div>
+    </div>
+
+
+
+    <!-- Records Table -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="text-xl font-semibold mb-4">Entry/Exit Records</h2>
+      </div>
+      <div class="card-content">
+        <div class="overflow-x-auto">
+          <table class="w-full" id="data-table">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll Number</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+  <script>
+    let attendanceData = [];
+    let classAttendanceChart = null;
+    let classAttendancePieChart = null;
+    let weeklyAttendanceChart = null;
+    let hourlyAttendanceChart = null;
+    function updateHourlyAttendanceChart(data) {
+      const ctx = document.getElementById('hourlyAttendance').getContext('2d');
+      
+      // Initialize an array for 24 hours (0-23), each set to zero
+      const hourlyAttendance = Array(24).fill(0);
+    
+      // Populate hourlyAttendance array with data
+      data.forEach(record => {
+        const hour = new Date(record.time).getHours();
+        hourlyAttendance[hour]++;
+      });
+    
+      const labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+    
+      // Destroy existing chart if it exists
+      if (hourlyAttendanceChart) {
+        hourlyAttendanceChart.destroy();
+      }
+    
+      // Create a new bar chart for hourly attendance
+      hourlyAttendanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Entries per Hour',
+            data: hourlyAttendance,
+            backgroundColor: '#3B82F6',
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    }
+    function downloadCSV() {
+      // Existing CSV download code
+      const headers = ['Section', 'Roll_Number', 'Status', 'Time'];
+      const csvContent = [
+        headers.join(','),
+        ...attendanceData.map(record => [
+          record.section,
+          record.roll_number,
+          record.status,
+          new Date(record.time).toLocaleString()
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'entry-exit-records.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+    
+    // Update the fetchAndUpdateData function to call updateHourlyAttendanceChart
+    document.addEventListener('DOMContentLoaded', () => {
+      function fetchAndUpdateData(section) {
+        fetch(`/api/attendance?section=${section}`)
+          .then(response => response.json())
+          .then(data => {
+            if (section === 'overall') {
+              attendanceData = data.attendanceData;
+            } else {
+              attendanceData = data.attendanceData.filter(record => record.section === section);
+            }
+    
+            const tbody = document.querySelector('#data-table tbody');
+            tbody.innerHTML = '';
+    
+            attendanceData.forEach(record => {
+              const row = document.createElement('tr');
+              const sectionCell = document.createElement('td');
+              sectionCell.textContent = record.section;
+              sectionCell.className = 'px-6 py-4';
+              row.appendChild(sectionCell);
+    
+              const rollNumberCell = document.createElement('td');
+              rollNumberCell.textContent = record.roll_number;
+              rollNumberCell.className = 'px-6 py-4';
+              row.appendChild(rollNumberCell);
+    
+              const statusCell = document.createElement('td');
+              statusCell.className = 'px-6 py-4';
+              const statusBadge = document.createElement('span');
+              statusBadge.className = `status-badge ${record.status === 'entry_detected' ? 'entry' : 'exit'}`;
+              statusBadge.textContent = record.status === 'entry_detected' ? 'Entry' : 'Exit';
+              statusCell.appendChild(statusBadge);
+              row.appendChild(statusCell);
+    
+              const timeCell = document.createElement('td');
+              timeCell.textContent = record.time;
+              timeCell.className = 'px-6 py-4';
+              row.appendChild(timeCell);
+    
+              tbody.appendChild(row);
+            });
+    
+            updateClassAttendanceChart(attendanceData);
+            updateWeeklyAttendanceChart(attendanceData);
+            updateHourlyAttendanceChart(attendanceData);  // Call the new hourly chart update function
+            updateSummaryStats(attendanceData);
+          })
+          .catch(error => console.error('Error fetching data:', error));
+      }
+    
+      fetchAndUpdateData('overall');
+      document.getElementById('sectionFilter').addEventListener('change', (event) => {
+        fetchAndUpdateData(event.target.value);
+      });
+    });
+    
+
+    function updateClassAttendanceChart(data) {
+      const ctxBar = document.getElementById('classAttendanceBar').getContext('2d');
+      const ctxPie = document.getElementById('classAttendancePie').getContext('2d');
+
+      const classAttendance = {
+        'A': 0,
+        'B': 0,
+        'C': 0,
+        'D': 0,
+        'E': 0,
+        'F': 0
+      };
+
+      data.forEach(record => {
+        classAttendance[record.section]++;
+      });
+
+      const labels = Object.keys(classAttendance);
+      const attendanceData = Object.values(classAttendance).map(count => (count / 20) * 100);
+
+      if (classAttendanceChart) {
+        classAttendanceChart.destroy();
+      }
+
+      classAttendanceChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Attendance Percentage',
+            data: attendanceData,
+            backgroundColor: '#3B82F6'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (classAttendancePieChart) {
+        classAttendancePieChart.destroy();
+      }
+
+      classAttendancePieChart = new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: attendanceData,
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    // Add remaining JavaScript functions to update charts, filters, and data tables here.
+    function updateWeeklyAttendanceChart(data) {
+      const ctx = document.getElementById('weeklyAttendance').getContext('2d');
+
+      // Assuming a week has 7 days
+      const weeklyAttendance = Array(7).fill(0);
+
+      data.forEach(record => {
+        const day = new Date(record.time).getDay();
+        weeklyAttendance[day]++;
+      });
+
+      const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+      // Destroy existing chart if it exists
+      if (weeklyAttendanceChart) {
+        weeklyAttendanceChart.destroy();
+      }
+
+      weeklyAttendanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Daily Attendance',
+            data: weeklyAttendance,
+            backgroundColor: '#3B82F6',
+            borderColor: '#3B82F6',
+            fill: false
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSummaryStats(data) {
+      // Create a Set to store unique students
+      const students = new Set();
+
+      data.forEach(record => {
+        if (record.status === 'entry_detected') {
+          students.add(record.roll_number);
+        } else if (record.status === 'exit_detected') {
+          students.delete(record.roll_number);
+        }
+      });
+
+      const totalStudents = students.size;
+      const totalEntries = data.filter(record => record.status === 'entry_detected').length;
+      const totalExits = data.filter(record => record.status === 'exit_detected').length;
+
+      document.getElementById('totalRecords').textContent = totalStudents;
+      document.getElementById('totalEntries').textContent = totalEntries;
+      document.getElementById('totalExits').textContent = totalExits;
+    }
+
+    function downloadCSV() {
+      // Existing CSV download code
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      function fetchAndUpdateData(section) {
+        fetch(`/api/attendance?section=${section}`)
+          .then(response => response.json())
+          .then(data => {
+            // Filter attendance data based on the selected section
+            if (section === 'overall') {
+              attendanceData = data.attendanceData;
+            } else {
+              attendanceData = data.attendanceData.filter(record => record.section === section);
+            }
+
+            // Update table
+            const tbody = document.querySelector('#data-table tbody');
+            tbody.innerHTML = '';
+
+            attendanceData.forEach(record => {
+              const row = document.createElement('tr');
+
+              const sectionCell = document.createElement('td');
+              sectionCell.textContent = record.section;
+              sectionCell.className = 'px-6 py-4';
+              row.appendChild(sectionCell);
+
+              const rollNumberCell = document.createElement('td');
+              rollNumberCell.textContent = record.roll_number;
+              rollNumberCell.className = 'px-6 py-4';
+              row.appendChild(rollNumberCell);
+
+              const statusCell = document.createElement('td');
+              statusCell.className = 'px-6 py-4';
+              const statusBadge = document.createElement('span');
+              statusBadge.className = `status-badge ${record.status === 'entry_detected' ? 'entry' : 'exit'}`;
+              statusBadge.textContent = record.status === 'entry_detected' ? 'Entry' : 'Exit';
+              statusCell.appendChild(statusBadge);
+              row.appendChild(statusCell);
+
+              const timeCell = document.createElement('td');
+              timeCell.textContent = record.time;
+              timeCell.className = 'px-6 py-4';
+              row.appendChild(timeCell);
+
+              tbody.appendChild(row);
+            });
+
+            // Update charts and summary statistics
+            updateClassAttendanceChart(attendanceData);
+            updateWeeklyAttendanceChart(attendanceData);
+            updateSummaryStats(attendanceData);
+          })
+          .catch(error => console.error('Error fetching data:', error));
+      }
+
+      // Initial fetch for overall data
+      fetchAndUpdateData('overall');
+
+      // Set up section filter listener
+      document.getElementById('sectionFilter').addEventListener('change', (event) => {
+        fetchAndUpdateData(event.target.value);
+      });
+    });
+    function generateMockData() {
+      const sections = ['A', 'B', 'C', 'D', 'E', 'F'];
+      const mockData = [];
+      
+      for (let i = 0; i < 100; i++) {
+        const section = sections[Math.floor(Math.random() * sections.length)];
+        const rollNumber = String(Math.floor(Math.random() * 100)).padStart(3, '0');
+        const status = Math.random() > 0.5 ? 'entry' : 'exit';
+        const time = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString();
+        
+        mockData.push({ section, rollNumber, status, time });
+      }
+      
+      return mockData;
+    }
+ function initializeCharts() {
+            // Class Attendance Chart
+            const classCtx = document.getElementById('classAttendance').getContext('2d');
+            new Chart(classCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['CSE-A', 'CSE-B', 'ECE-A', 'ECE-B', 'MECH-A', 'MECH-B'],
+                    datasets: [{
+                        label: 'Present',
+                        data: [45, 38, 42, 40, 35, 37],
+                        backgroundColor: '#4F46E5'
+                    }, {
+                        label: 'Absent',
+                        data: [5, 12, 8, 10, 15, 13],
+                        backgroundColor: '#EF4444'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Students'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Attendance Trends Chart
+            const trendCtx = document.getElementById('attendanceTrends').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                    datasets: [{
+                        label: 'Average Attendance',
+                        data: [92, 88, 85, 89, 87],
+                        borderColor: '#10B981',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Attendance Percentage'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Bunking Patterns Chart
+            const bunkCtx = document.getElementById('bunkingPatterns').getContext('2d');
+            new Chart(bunkCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                    datasets: [{
+                        data: [15, 25, 20, 30, 10],
+                        backgroundColor: [
+                            '#4F46E5',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#6366F1'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // Attendance Percentage Chart
+            const percentCtx = document.getElementById('attendancePercentage').getContext('2d');
+            new Chart(percentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['CSE-A', 'CSE-B', 'ECE-A', 'ECE-B', 'MECH-A', 'MECH-B'],
+                    datasets: [{
+                        data: [90, 85, 88, 82, 78, 80],
+                        backgroundColor: [
+                            '#4F46E5',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#6366F1',
+                            '#8B5CF6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {position: 'right',
+                        labels: {
+                            generateLabels: function(chart) {
+                                const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                labels.forEach(label => {
+                                    label.text += ` (${chart.data.datasets[0].data[label.index]}%)`;
+                                });
+                                return labels;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    $(function(){
+        // Initialize Charts
+        initializeCharts();
+
+        // Initialize DataTable
+        var button_table = $('#buttonTable').DataTable({
+            responsive: true,
+            ordering: true,
+            paging: true,
+            pageLength: 10,
+            buttons: [{
+                extend: 'csv',
+                filename: 'attendance_report',
+                extension: '.csv'
+            }],
+            initComplete: function() {
+                $('.buttons-csv').hide();
+            }
+        });
+
+        // Export button handler
+        document.getElementById("export").onclick = function() { 
+            $('#buttonTable').DataTable().button(0).trigger();
+        }; 
+
+        // Sample IoT devices - in practice, this would come from your Firebase database
+        const iotDevices = [
+            { id: 'DEV001', location: 'CSE Block - Floor 1', status: 'active' },
+            { id: 'DEV002', location: 'CSE Block - Floor 2', status: 'active' },
+            { id: 'DEV003', location: 'ECE Block - Floor 1', status: 'inactive' }
+        ];
+
+        // Update IoT device status display
+        function updateDeviceStatus() {
+            const deviceStatusHtml = iotDevices.map(device => `
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-semibold">${device.id}</h3>
+                            <p class="text-sm text-gray-500">${device.location}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="device-status ${device.status}"></span>
+                            <span class="text-sm ${device.status === 'active' ? 'text-green-600' : 'text-red-600'}">
+                                ${device.status === 'active' ? 'Online' : 'Offline'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            $('#deviceStatus').html(deviceStatusHtml);
+        }
+
+        // Calculate attendance statistics
+        function calculateAttendanceStats(attendanceData) {
+            const stats = {
+                totalStudents: 0,
+                present: 0,
+                absent: 0,
+                lowAttendance: 0
+            };
+
+            // Group attendance by student
+            const studentAttendance = {};
+            attendanceData.forEach(record => {
+                if (!studentAttendance[record.uid]) {
+                    studentAttendance[record.uid] = [];
+                }
+                studentAttendance[record.uid].push(record);
+            });
+
+            // Calculate statistics
+            stats.totalStudents = Object.keys(studentAttendance).length;
+            
+            Object.values(studentAttendance).forEach(records => {
+                const latestRecord = records.sort((a, b) => 
+                    new Date(b.time) - new Date(a.time)
+                )[0];
+
+                if (latestRecord.status) {
+                    stats.present++;
+                } else {
+                    stats.absent++;
+                }
+
+                // Calculate attendance percentage
+                const attendancePercentage = (records.filter(r => r.status).length / records.length) * 100;
+                if (attendancePercentage < 75) {
+                    stats.lowAttendance++;
+                }
+            });
+
+            return stats;
+        }
+
+        // Update dashboard with live data
+        firebase.database().ref('/').on('value', function(snap){   
+            updateDeviceStatus();
+
+            if(snap.val().attendence){
+                const attendanceData = Object.values(snap.val().attendence);
+                const stats = calculateAttendanceStats(attendanceData);
+
+                // Update summary stats
+                $('#totalUsers').text(stats.totalStudents);
+                $('#checkedIn').text(stats.present);
+                $('#checkedOut').text(stats.absent);
+                $('#lowAttendance').text(stats.lowAttendance);
+
+                // Clear and repopulate table
+                button_table.clear();
+                
+                attendanceData.forEach(function(elem){
+                    const row = [
+                        elem.uid,
+                        elem.class || 'N/A', // Add class information if available
+                        elem.id,
+                        new Date(elem.time.slice(0, -1)).toLocaleString(),
+                        `<span class="status-badge ${elem.status ? 'check-in' : 'check-out'}">
+                            ${elem.status ? 'Present' : 'Absent'}
+                        </span>`
+                    ];
+                    button_table.row.add(row).draw(false);
+                });
+
+                // You could update charts here with real data
+                // For this example, we're using static data in initializeCharts()
+            }
+        });
+
+        // Simulate periodic IoT device status updates
+        setInterval(() => {
+            iotDevices.forEach(device => {
+                // Randomly change device status for demonstration
+                if (Math.random() < 0.1) {
+                    device.status = device.status === 'active' ? 'inactive' : 'active';
+                    updateDeviceStatus();
+                }
+            });
+        }, 5000);
+
+        // Error handling for Firebase connection
+        firebase.database().ref('.info/connected').on('value', function(snap) {
+            if (snap.val() === true) {
+                console.log('Connected to Firebase');
+            } else {
+                console.log('Disconnected from Firebase');
+                // Show connection error message
+                const errorHtml = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                        <strong class="font-bold">Connection Error!</strong>
+                        <span class="block sm:inline">Unable to connect to the database. Please check your connection.</span>
+                    </div>
+                `;
+                $('.container').prepend(errorHtml);
+            }
+        });
+    });
+
+    // Handle window resize for charts
+    window.addEventListener('resize', function() {
+        initializeCharts();
+    });
+  </script>
+</body>
+</html>

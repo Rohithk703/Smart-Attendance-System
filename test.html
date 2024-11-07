@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Smart IoT Attendance System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase.js"></script>
+    <script>
+        var config = {
+            apiKey: "AIzaSyAOuIMdD0S5dR3t5EQKWqXblCihgn11iGU",
+            authDomain: "mqtt-b9578.firebaseapp.com",
+            databaseURL: "https://mqtt-b9578.firebaseio.com",
+            projectId: "mqtt-b9578",
+            storageBucket: "mqtt-b9578.appspot.com",
+            messagingSenderId: "492800222873",
+            appId: "1:492800222873:web:41d814d453d83c0a38ba08"
+        };
+        firebase.initializeApp(config);
+    </script>
+
+    <!-- External CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.20/css/dataTables.tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.2.6/css/responsive.dataTables.min.css" rel="stylesheet">
+    
+    <style>
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge.check-in {
+            background-color: #DEF7EC;
+            color: #03543F;
+        }
+
+        .status-badge.check-out {
+            background-color: #FDE8E8;
+            color: #9B1C1C;
+        }
+
+        .live-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .user-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .device-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .device-status.active {
+            background-color: #31C48D;
+        }
+
+        .device-status.inactive {
+            background-color: #F98080;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-microchip text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold">IoT Smart Attendance System</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-50 transition duration-200" id="export">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- IoT Device Status -->
+        <div class="dashboard-card mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-4">IoT Device Status</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="deviceStatus">
+                    <!-- Device status cards will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="dashboard-card p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-gray-500 text-sm">Total Students</h3>
+                        <p class="text-2xl font-semibold" id="totalUsers">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-card p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <i class="fas fa-user-check text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-gray-500 text-sm">Present Today</h3>
+                        <p class="text-2xl font-semibold" id="checkedIn">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-card p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-100 rounded-full">
+                        <i class="fas fa-user-times text-red-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-gray-500 text-sm">Absent Today</h3>
+                        <p class="text-2xl font-semibold" id="checkedOut">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-card p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-gray-500 text-sm">Low Attendance</h3>
+                        <p class="text-2xl font-semibold" id="lowAttendance">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Records -->
+        <div class="dashboard-card mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-4">Attendance Records</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full" id="buttonTable">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Device ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.tailwind.min.js"></script>
+
+    <script>
+        async function fetchAttendanceRecords() {
+            const response = await fetch('/api/attendance'); // Adjusted API endpoint to fetch from your Express server
+            if (!response.ok) {
+                throw new Error('Failed to fetch attendance records');
+            }
+            const data = await response.json();
+            return data.attendanceData; // Adjusted to match the response structure from the backend
+        }
+
+        async function fetchDeviceStatus() {
+            // Similar fetch logic can be used for device status if needed
+        }
+
+        async function updateDashboard() {
+            try {
+                const attendanceRecords = await fetchAttendanceRecords();
+                const totalUsers = attendanceRecords.length;
+                const presentToday = attendanceRecords.filter(record => record.status === 'check-in').length;
+                const absentToday = attendanceRecords.filter(record => record.status === 'check-out').length;
+
+                document.getElementById('totalUsers').innerText = totalUsers;
+                document.getElementById('checkedIn').innerText = presentToday;
+                document.getElementById('checkedOut').innerText = absentToday;
+                
+                // Update attendance records table
+                const tableBody = document.querySelector('#buttonTable tbody');
+                tableBody.innerHTML = ''; // Clear existing rows
+                attendanceRecords.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${record.studentId}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${record.class}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${record.deviceId}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${record.time}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="status-badge ${record.status === 'check-in' ? 'check-in' : 'check-out'}">${record.status}</span>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error updating dashboard:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
+        });
+    </script>
+</body>
+</html>
